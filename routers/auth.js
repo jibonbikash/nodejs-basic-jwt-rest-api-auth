@@ -2,7 +2,9 @@ const router = require('express').Router();
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { registrationValidation, loginValidation }= require('./UserValidation');
-
+const jwt = require('jsonwebtoken');
+const dotenv=require('dotenv');
+dotenv.config();
 
 router.post('/register', async (req, res) => {
     try {
@@ -109,7 +111,10 @@ router.post('/login', async (req, res) => {
 
             const valiedPassword = await bcrypt.compare(req.body.password, user.password);
             if (valiedPassword) {
-                res.json({success: true, message: 'Login success'});
+                const token = jwt.sign(user.toJSON(), process.env.API_SECRET, {
+                    expiresIn: 604800 // 1 week
+                });
+                res.json({success: true, message: 'Login success', token: token});
             }
             else {
                 res.json({success: false, message: 'Password Not match'});
